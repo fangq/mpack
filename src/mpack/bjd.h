@@ -22,18 +22,18 @@
 /**
  * @file
  *
- * Includes the full MPack API. Only this file needs to be included
+ * Includes the full BJData API. Only this file needs to be included
  * in application code.
  */
 
-#ifndef MPACK_H
-#define MPACK_H 1
+#ifndef BJDATA_H
+#define BJDATA_H 1
 
-#include "mpack-common.h"
-#include "mpack-writer.h"
-#include "mpack-reader.h"
-#include "mpack-expect.h"
-#include "mpack-node.h"
+#include "bjd-common.h"
+#include "bjd-writer.h"
+#include "bjd-reader.h"
+#include "bjd-expect.h"
+#include "bjd-node.h"
 
 #endif
 

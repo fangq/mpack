@@ -22,46 +22,46 @@
 /**
  * @file
  *
- * Abstracts all platform-specific code from MPack. This contains
+ * Abstracts all platform-specific code from BJData. This contains
  * implementations of standard C functions when libc is not available,
  * as well as wrappers to library functions.
  */
 
-#ifndef MPACK_PLATFORM_H
-#define MPACK_PLATFORM_H 1
+#ifndef BJDATA_PLATFORM_H
+#define BJDATA_PLATFORM_H 1
 
 
 
 /* Pre-include checks */
 
 #if defined(_MSC_VER) && _MSC_VER < 1800 && !defined(__cplusplus)
-#error "In Visual Studio 2012 and earlier, MPack must be compiled as C++. Enable the /Tp compiler flag."
+#error "In Visual Studio 2012 and earlier, BJData must be compiled as C++. Enable the /Tp compiler flag."
 #endif
 
-#if defined(WIN32) && defined(MPACK_INTERNAL) && MPACK_INTERNAL
+#if defined(WIN32) && defined(BJDATA_INTERNAL) && BJDATA_INTERNAL
 #define _CRT_SECURE_NO_WARNINGS 1
 #endif
 
 
 
 /* Doxygen preprocs */
-#if defined(MPACK_DOXYGEN) && MPACK_DOXYGEN
-#define MPACK_HAS_CONFIG 0
+#if defined(BJDATA_DOXYGEN) && BJDATA_DOXYGEN
+#define BJDATA_HAS_CONFIG 0
 // We give these their default values of 0 here even though they are defined to
 // 1 in the doxyfile. Doxygen will show this as the value in the docs, even
 // though it ignores it when parsing the rest of the source. This is what we
 // want, since we want the documentation to show these defaults but still
 // generate documentation for the functions they add when they're on.
-#define MPACK_COMPATIBILITY 0
-#define MPACK_EXTENSIONS 0
+#define BJDATA_COMPATIBILITY 0
+#define BJDATA_EXTENSIONS 0
 #endif
 
 
 
 /* Include the custom config file if enabled */
 
-#if defined(MPACK_HAS_CONFIG) && MPACK_HAS_CONFIG
-#include "mpack-config.h"
+#if defined(BJDATA_HAS_CONFIG) && BJDATA_HAS_CONFIG
+#include "bjd-config.h"
 #endif
 
 /*
@@ -69,42 +69,42 @@
  * for any of the configuration options and other switches that aren't
  * yet defined.
  */
-#if defined(MPACK_DOXYGEN) && MPACK_DOXYGEN
-#include "mpack-defaults-doxygen.h"
+#if defined(BJDATA_DOXYGEN) && BJDATA_DOXYGEN
+#include "bjd-defaults-doxygen.h"
 #else
-#include "mpack-defaults.h"
+#include "bjd-defaults.h"
 #endif
 
 /*
  * All remaining configuration options that have not yet been set must
  * be defined here in order to support -Wundef.
  */
-#ifndef MPACK_DEBUG
-#define MPACK_DEBUG 0
+#ifndef BJDATA_DEBUG
+#define BJDATA_DEBUG 0
 #endif
-#ifndef MPACK_CUSTOM_BREAK
-#define MPACK_CUSTOM_BREAK 0
+#ifndef BJDATA_CUSTOM_BREAK
+#define BJDATA_CUSTOM_BREAK 0
 #endif
-#ifndef MPACK_READ_TRACKING
-#define MPACK_READ_TRACKING 0
+#ifndef BJDATA_READ_TRACKING
+#define BJDATA_READ_TRACKING 0
 #endif
-#ifndef MPACK_WRITE_TRACKING
-#define MPACK_WRITE_TRACKING 0
+#ifndef BJDATA_WRITE_TRACKING
+#define BJDATA_WRITE_TRACKING 0
 #endif
-#ifndef MPACK_EMIT_INLINE_DEFS
-#define MPACK_EMIT_INLINE_DEFS 0
+#ifndef BJDATA_EMIT_INLINE_DEFS
+#define BJDATA_EMIT_INLINE_DEFS 0
 #endif
-#ifndef MPACK_AMALGAMATED
-#define MPACK_AMALGAMATED 0
+#ifndef BJDATA_AMALGAMATED
+#define BJDATA_AMALGAMATED 0
 #endif
-#ifndef MPACK_RELEASE_VERSION
-#define MPACK_RELEASE_VERSION 0
+#ifndef BJDATA_RELEASE_VERSION
+#define BJDATA_RELEASE_VERSION 0
 #endif
-#ifndef MPACK_INTERNAL
-#define MPACK_INTERNAL 0
+#ifndef BJDATA_INTERNAL
+#define BJDATA_INTERNAL 0
 #endif
-#ifndef MPACK_NO_BUILTINS
-#define MPACK_NO_BUILTINS 0
+#ifndef BJDATA_NO_BUILTINS
+#define BJDATA_NO_BUILTINS 0
 #endif
 
 
@@ -127,12 +127,12 @@
 #include <inttypes.h>
 #include <limits.h>
 
-#if MPACK_STDLIB
+#if BJDATA_STDLIB
 #include <string.h>
 #include <stdlib.h>
 #endif
 
-#if MPACK_STDIO
+#if BJDATA_STDIO
 #include <stdio.h>
 #include <errno.h>
 #endif
@@ -144,16 +144,16 @@
  */
 
 #ifdef __cplusplus
-    #define MPACK_EXTERN_C_START extern "C" {
-    #define MPACK_EXTERN_C_END   }
+    #define BJDATA_EXTERN_C_START extern "C" {
+    #define BJDATA_EXTERN_C_END   }
 #else
-    #define MPACK_EXTERN_C_START /* nothing */
-    #define MPACK_EXTERN_C_END   /* nothing */
+    #define BJDATA_EXTERN_C_START /* nothing */
+    #define BJDATA_EXTERN_C_END   /* nothing */
 #endif
 
 /* We can't push/pop diagnostics before GCC 4.6, so if you're on a really old
- * compiler, MPack does not support the below warning flags. You will have to
- * manually disable them to use MPack. */
+ * compiler, BJData does not support the below warning flags. You will have to
+ * manually disable them to use BJData. */
 
 /* GCC versions before 5.1 warn about defining a C99 non-static inline function
  * before declaring it (see issue #20). Diagnostic push is not supported before
@@ -161,21 +161,21 @@
 #if defined(__GNUC__) && !defined(__clang__)
     #if (__GNUC__ == 4 && __GNUC_MINOR__ >= 6) || (__GNUC__ == 5 && __GNUC_MINOR__ < 1)
         #ifdef __cplusplus
-            #define MPACK_DECLARED_INLINE_WARNING_START \
+            #define BJDATA_DECLARED_INLINE_WARNING_START \
                 _Pragma ("GCC diagnostic push") \
                 _Pragma ("GCC diagnostic ignored \"-Wmissing-declarations\"")
         #else
-            #define MPACK_DECLARED_INLINE_WARNING_START \
+            #define BJDATA_DECLARED_INLINE_WARNING_START \
                 _Pragma ("GCC diagnostic push") \
                 _Pragma ("GCC diagnostic ignored \"-Wmissing-prototypes\"")
         #endif
-        #define MPACK_DECLARED_INLINE_WARNING_END \
+        #define BJDATA_DECLARED_INLINE_WARNING_END \
             _Pragma ("GCC diagnostic pop")
     #endif
 #endif
-#ifndef MPACK_DECLARED_INLINE_WARNING_START
-    #define MPACK_DECLARED_INLINE_WARNING_START /* nothing */
-    #define MPACK_DECLARED_INLINE_WARNING_END /* nothing */
+#ifndef BJDATA_DECLARED_INLINE_WARNING_START
+    #define BJDATA_DECLARED_INLINE_WARNING_START /* nothing */
+    #define BJDATA_DECLARED_INLINE_WARNING_END /* nothing */
 #endif
 
 /* GCC versions before 4.8 warn about shadowing a function with a variable that
@@ -183,37 +183,37 @@
  * supported before GCC 4.6. */
 #if defined(__GNUC__) && !defined(__clang__)
     #if __GNUC__ == 4 && __GNUC_MINOR__ >= 6 && __GNUC_MINOR__ < 8
-        #define MPACK_WSHADOW_WARNING_START \
+        #define BJDATA_WSHADOW_WARNING_START \
             _Pragma ("GCC diagnostic push") \
             _Pragma ("GCC diagnostic ignored \"-Wshadow\"")
-        #define MPACK_WSHADOW_WARNING_END \
+        #define BJDATA_WSHADOW_WARNING_END \
             _Pragma ("GCC diagnostic pop")
     #endif
 #endif
-#ifndef MPACK_WSHADOW_WARNING_START
-    #define MPACK_WSHADOW_WARNING_START /* nothing */
-    #define MPACK_WSHADOW_WARNING_END /* nothing */
+#ifndef BJDATA_WSHADOW_WARNING_START
+    #define BJDATA_WSHADOW_WARNING_START /* nothing */
+    #define BJDATA_WSHADOW_WARNING_END /* nothing */
 #endif
 
-#define MPACK_HEADER_START \
-    MPACK_WSHADOW_WARNING_START \
-    MPACK_DECLARED_INLINE_WARNING_START
+#define BJDATA_HEADER_START \
+    BJDATA_WSHADOW_WARNING_START \
+    BJDATA_DECLARED_INLINE_WARNING_START
 
-#define MPACK_HEADER_END \
-    MPACK_DECLARED_INLINE_WARNING_END \
-    MPACK_WSHADOW_WARNING_END
+#define BJDATA_HEADER_END \
+    BJDATA_DECLARED_INLINE_WARNING_END \
+    BJDATA_WSHADOW_WARNING_END
 
-MPACK_HEADER_START
-MPACK_EXTERN_C_START
+BJDATA_HEADER_START
+BJDATA_EXTERN_C_START
 
 
 
 /* Miscellaneous helper macros */
 
-#define MPACK_UNUSED(var) ((void)(var))
+#define BJDATA_UNUSED(var) ((void)(var))
 
-#define MPACK_STRINGIFY_IMPL(arg) #arg
-#define MPACK_STRINGIFY(arg) MPACK_STRINGIFY_IMPL(arg)
+#define BJDATA_STRINGIFY_IMPL(arg) #arg
+#define BJDATA_STRINGIFY(arg) BJDATA_STRINGIFY_IMPL(arg)
 
 // This is a workaround for MSVC's incorrect expansion of __VA_ARGS__. It
 // treats __VA_ARGS__ as a single preprocessor token when passed in the
@@ -222,24 +222,24 @@ MPACK_EXTERN_C_START
 // that don't ignore the variadic arguments regardless of whether __VA_ARGS__
 // is passed to another macro.)
 //     https://stackoverflow.com/a/32400131
-#define MPACK_EXPAND(x) x
+#define BJDATA_EXPAND(x) x
 
 // Extracts the first argument of a variadic macro list, where there might only
 // be one argument.
-#define MPACK_EXTRACT_ARG0_IMPL(first, ...) first
-#define MPACK_EXTRACT_ARG0(...) MPACK_EXPAND(MPACK_EXTRACT_ARG0_IMPL( __VA_ARGS__ , ignored))
+#define BJDATA_EXTRACT_ARG0_IMPL(first, ...) first
+#define BJDATA_EXTRACT_ARG0(...) BJDATA_EXPAND(BJDATA_EXTRACT_ARG0_IMPL( __VA_ARGS__ , ignored))
 
 // Stringifies the first argument of a variadic macro list, where there might
 // only be one argument.
-#define MPACK_STRINGIFY_ARG0_impl(first, ...) #first
-#define MPACK_STRINGIFY_ARG0(...) MPACK_EXPAND(MPACK_STRINGIFY_ARG0_impl( __VA_ARGS__ , ignored))
+#define BJDATA_STRINGIFY_ARG0_impl(first, ...) #first
+#define BJDATA_STRINGIFY_ARG0(...) BJDATA_EXPAND(BJDATA_STRINGIFY_ARG0_impl( __VA_ARGS__ , ignored))
 
 
 
 /*
  * Definition of inline macros.
  *
- * MPack does not use static inline in header files; only one non-inline definition
+ * BJData does not use static inline in header files; only one non-inline definition
  * of each function should exist in the final build. This can reduce the binary size
  * in cases where the compiler cannot or chooses not to inline a function.
  * The addresses of functions should also compare equal across translation units
@@ -261,9 +261,9 @@ MPACK_EXTERN_C_START
  *
  * The macros below wrap up everything above. All inline functions defined in header
  * files have a single non-inline definition emitted in the compilation of
- * mpack-platform.c. All inline declarations and definitions use the same MPACK_INLINE
+ * bjd-platform.c. All inline declarations and definitions use the same BJDATA_INLINE
  * specification to simplify the rules on when standalone functions are emitted.
- * Inline functions in source files are defined MPACK_STATIC_INLINE.
+ * Inline functions in source files are defined BJDATA_STATIC_INLINE.
  *
  * Additional reading:
  *     http://www.greenend.org.uk/rjk/tech/inline.html
@@ -273,26 +273,26 @@ MPACK_EXTERN_C_START
     // C++ rules
     // The linker will need COMDAT support to link C++ object files,
     // so we don't need to worry about emitting definitions from C++
-    // translation units. If mpack-platform.c (or the amalgamation)
+    // translation units. If bjd-platform.c (or the amalgamation)
     // is compiled as C, its definition will be used, otherwise a
     // C++ definition will be used, and no other C files will emit
     // a definition.
-    #define MPACK_INLINE inline
+    #define BJDATA_INLINE inline
 
 #elif defined(_MSC_VER)
     // MSVC 2013 always uses COMDAT linkage, but it doesn't treat 'inline' as a
     // keyword in C99 mode. (This appears to be fixed in a later version of
     // MSVC but we don't bother detecting it.)
-    #define MPACK_INLINE __inline
-    #define MPACK_STATIC_INLINE static __inline
+    #define BJDATA_INLINE __inline
+    #define BJDATA_STATIC_INLINE static __inline
 
 #elif defined(__GNUC__) && (defined(__GNUC_GNU_INLINE__) || \
         (!defined(__GNUC_STDC_INLINE__) && !defined(__GNUC_GNU_INLINE__)))
     // GNU rules
-    #if MPACK_EMIT_INLINE_DEFS
-        #define MPACK_INLINE inline
+    #if BJDATA_EMIT_INLINE_DEFS
+        #define BJDATA_INLINE inline
     #else
-        #define MPACK_INLINE extern inline
+        #define BJDATA_INLINE extern inline
     #endif
 
 #elif defined(__TINYC__)
@@ -300,26 +300,26 @@ MPACK_EXTERN_C_START
     // issue a warning to make sure you are aware. You can define the below
     // macro to disable the warning. Hopefully this will be fixed soon:
     //     https://lists.nongnu.org/archive/html/tinycc-devel/2019-06/msg00000.html
-    #ifndef MPACK_DISABLE_TINYC_INLINE_WARNING
-        #warning "Single-definition inline is not supported by tcc. All inlines will be static. Define MPACK_DISABLE_TINYC_INLINE_WARNING to disable this warning."
+    #ifndef BJDATA_DISABLE_TINYC_INLINE_WARNING
+        #warning "Single-definition inline is not supported by tcc. All inlines will be static. Define BJDATA_DISABLE_TINYC_INLINE_WARNING to disable this warning."
     #endif
-    #define MPACK_INLINE static inline
+    #define BJDATA_INLINE static inline
 
 #else
     // C99 rules
-    #if MPACK_EMIT_INLINE_DEFS
-        #define MPACK_INLINE extern inline
+    #if BJDATA_EMIT_INLINE_DEFS
+        #define BJDATA_INLINE extern inline
     #else
-        #define MPACK_INLINE inline
+        #define BJDATA_INLINE inline
     #endif
 #endif
 
-#ifndef MPACK_STATIC_INLINE
-#define MPACK_STATIC_INLINE static inline
+#ifndef BJDATA_STATIC_INLINE
+#define BJDATA_STATIC_INLINE static inline
 #endif
 
-#ifdef MPACK_OPTIMIZE_FOR_SPEED
-    #error "You should define MPACK_OPTIMIZE_FOR_SIZE, not MPACK_OPTIMIZE_FOR_SPEED."
+#ifdef BJDATA_OPTIMIZE_FOR_SPEED
+    #error "You should define BJDATA_OPTIMIZE_FOR_SIZE, not BJDATA_OPTIMIZE_FOR_SPEED."
 #endif
 
 
@@ -333,46 +333,46 @@ MPACK_EXTERN_C_START
  * will get inlined into the middle of a hot code path.
  */
 
-#if !MPACK_NO_BUILTINS
+#if !BJDATA_NO_BUILTINS
     #if defined(_MSC_VER)
-        #define MPACK_NOINLINE __declspec(noinline)
+        #define BJDATA_NOINLINE __declspec(noinline)
     #elif defined(__GNUC__) || defined(__clang__)
-        #define MPACK_NOINLINE __attribute__((noinline))
+        #define BJDATA_NOINLINE __attribute__((noinline))
     #endif
 #endif
-#ifndef MPACK_NOINLINE
-    #define MPACK_NOINLINE /* nothing */
+#ifndef BJDATA_NOINLINE
+    #define BJDATA_NOINLINE /* nothing */
 #endif
 
 
 
 /* Some compiler-specific keywords and builtins */
 
-#if !MPACK_NO_BUILTINS
+#if !BJDATA_NO_BUILTINS
     #if defined(__GNUC__) || defined(__clang__)
-        #define MPACK_UNREACHABLE __builtin_unreachable()
-        #define MPACK_NORETURN(fn) fn __attribute__((noreturn))
-        #define MPACK_RESTRICT __restrict__
+        #define BJDATA_UNREACHABLE __builtin_unreachable()
+        #define BJDATA_NORETURN(fn) fn __attribute__((noreturn))
+        #define BJDATA_RESTRICT __restrict__
     #elif defined(_MSC_VER)
-        #define MPACK_UNREACHABLE __assume(0)
-        #define MPACK_NORETURN(fn) __declspec(noreturn) fn
-        #define MPACK_RESTRICT __restrict
+        #define BJDATA_UNREACHABLE __assume(0)
+        #define BJDATA_NORETURN(fn) __declspec(noreturn) fn
+        #define BJDATA_RESTRICT __restrict
     #endif
 #endif
 
-#ifndef MPACK_RESTRICT
+#ifndef BJDATA_RESTRICT
 #ifdef __cplusplus
-#define MPACK_RESTRICT /* nothing, unavailable in C++ */
+#define BJDATA_RESTRICT /* nothing, unavailable in C++ */
 #else
-#define MPACK_RESTRICT restrict /* required in C99 */
+#define BJDATA_RESTRICT restrict /* required in C99 */
 #endif
 #endif
 
-#ifndef MPACK_UNREACHABLE
-#define MPACK_UNREACHABLE ((void)0)
+#ifndef BJDATA_UNREACHABLE
+#define BJDATA_UNREACHABLE ((void)0)
 #endif
-#ifndef MPACK_NORETURN
-#define MPACK_NORETURN(fn) fn
+#ifndef BJDATA_NORETURN
+#define BJDATA_NORETURN(fn) fn
 #endif
 
 
@@ -385,64 +385,64 @@ MPACK_EXTERN_C_START
  * elements are a good example.
  */
 
-#if !MPACK_NO_BUILTINS
+#if !BJDATA_NO_BUILTINS
     #if defined(__GNUC__) || defined(__clang__)
-        #ifndef MPACK_LIKELY
-            #define MPACK_LIKELY(x) __builtin_expect((x),1)
+        #ifndef BJDATA_LIKELY
+            #define BJDATA_LIKELY(x) __builtin_expect((x),1)
         #endif
-        #ifndef MPACK_UNLIKELY
-            #define MPACK_UNLIKELY(x) __builtin_expect((x),0)
+        #ifndef BJDATA_UNLIKELY
+            #define BJDATA_UNLIKELY(x) __builtin_expect((x),0)
         #endif
     #endif
 #endif
 
-#ifndef MPACK_LIKELY
-    #define MPACK_LIKELY(x) (x)
+#ifndef BJDATA_LIKELY
+    #define BJDATA_LIKELY(x) (x)
 #endif
-#ifndef MPACK_UNLIKELY
-    #define MPACK_UNLIKELY(x) (x)
+#ifndef BJDATA_UNLIKELY
+    #define BJDATA_UNLIKELY(x) (x)
 #endif
 
 
 
 /* Static assert */
 
-#ifndef MPACK_STATIC_ASSERT
+#ifndef BJDATA_STATIC_ASSERT
     #if defined(__cplusplus)
         #if __cplusplus >= 201103L
-            #define MPACK_STATIC_ASSERT static_assert
+            #define BJDATA_STATIC_ASSERT static_assert
         #endif
     #elif defined(__STDC_VERSION__)
         #if __STDC_VERSION__ >= 201112L
-            #define MPACK_STATIC_ASSERT _Static_assert
+            #define BJDATA_STATIC_ASSERT _Static_assert
         #endif
     #endif
 #endif
 
-#if !MPACK_NO_BUILTINS
-    #ifndef MPACK_STATIC_ASSERT
+#if !BJDATA_NO_BUILTINS
+    #ifndef BJDATA_STATIC_ASSERT
         #if defined(__has_feature)
             #if __has_feature(cxx_static_assert)
-                #define MPACK_STATIC_ASSERT static_assert
+                #define BJDATA_STATIC_ASSERT static_assert
             #elif __has_feature(c_static_assert)
-                #define MPACK_STATIC_ASSERT _Static_assert
+                #define BJDATA_STATIC_ASSERT _Static_assert
             #endif
         #endif
     #endif
 
-    #ifndef MPACK_STATIC_ASSERT
+    #ifndef BJDATA_STATIC_ASSERT
         #if defined(__GNUC__)
             /* Diagnostic push is not supported before GCC 4.6. */
             #if defined(__clang__) || __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
                 #ifndef __cplusplus
                     #if defined(__clang__) || __GNUC__ >= 5
-                    #define MPACK_IGNORE_PEDANTIC "GCC diagnostic ignored \"-Wpedantic\""
+                    #define BJDATA_IGNORE_PEDANTIC "GCC diagnostic ignored \"-Wpedantic\""
                     #else
-                    #define MPACK_IGNORE_PEDANTIC "GCC diagnostic ignored \"-pedantic\""
+                    #define BJDATA_IGNORE_PEDANTIC "GCC diagnostic ignored \"-pedantic\""
                     #endif
-                    #define MPACK_STATIC_ASSERT(expr, str) do { \
+                    #define BJDATA_STATIC_ASSERT(expr, str) do { \
                         _Pragma ("GCC diagnostic push") \
-                        _Pragma (MPACK_IGNORE_PEDANTIC) \
+                        _Pragma (BJDATA_IGNORE_PEDANTIC) \
                         _Pragma ("GCC diagnostic ignored \"-Wc++-compat\"") \
                         _Static_assert(expr, str); \
                         _Pragma ("GCC diagnostic pop") \
@@ -452,53 +452,53 @@ MPACK_EXTERN_C_START
         #endif
     #endif
 
-    #ifndef MPACK_STATIC_ASSERT
+    #ifndef BJDATA_STATIC_ASSERT
         #ifdef _MSC_VER
             #if _MSC_VER >= 1600
-                #define MPACK_STATIC_ASSERT static_assert
+                #define BJDATA_STATIC_ASSERT static_assert
             #endif
         #endif
     #endif
 #endif
 
-#ifndef MPACK_STATIC_ASSERT
-    #define MPACK_STATIC_ASSERT(expr, str) (MPACK_UNUSED(sizeof(char[1 - 2*!(expr)])))
+#ifndef BJDATA_STATIC_ASSERT
+    #define BJDATA_STATIC_ASSERT(expr, str) (BJDATA_UNUSED(sizeof(char[1 - 2*!(expr)])))
 #endif
 
 
 
 /* _Generic */
 
-#ifndef MPACK_HAS_GENERIC
+#ifndef BJDATA_HAS_GENERIC
     #if defined(__clang__) && defined(__has_feature)
         // With Clang we can test for _Generic support directly
         // and ignore C/C++ version
         #if __has_feature(c_generic_selections)
-            #define MPACK_HAS_GENERIC 1
+            #define BJDATA_HAS_GENERIC 1
         #else
-            #define MPACK_HAS_GENERIC 0
+            #define BJDATA_HAS_GENERIC 0
         #endif
     #endif
 #endif
 
-#ifndef MPACK_HAS_GENERIC
+#ifndef BJDATA_HAS_GENERIC
     #if defined(__STDC_VERSION__)
         #if __STDC_VERSION__ >= 201112L
             #if defined(__GNUC__) && !defined(__clang__)
                 // GCC does not have full C11 support in GCC 4.7 and 4.8
                 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)
-                    #define MPACK_HAS_GENERIC 1
+                    #define BJDATA_HAS_GENERIC 1
                 #endif
             #else
                 // We hope other compilers aren't lying about C11/_Generic support
-                #define MPACK_HAS_GENERIC 1
+                #define BJDATA_HAS_GENERIC 1
             #endif
         #endif
     #endif
 #endif
 
-#ifndef MPACK_HAS_GENERIC
-    #define MPACK_HAS_GENERIC 0
+#ifndef BJDATA_HAS_GENERIC
+    #define BJDATA_HAS_GENERIC 0
 #endif
 
 
@@ -513,14 +513,14 @@ MPACK_EXTERN_C_START
  * non-finite reals. This isn't currently implemented.
  */
 
-#ifndef MPACK_FINITE_MATH
+#ifndef BJDATA_FINITE_MATH
 #if defined(__FINITE_MATH_ONLY__) && __FINITE_MATH_ONLY__
-#define MPACK_FINITE_MATH 1
+#define BJDATA_FINITE_MATH 1
 #endif
 #endif
 
-#ifndef MPACK_FINITE_MATH
-#define MPACK_FINITE_MATH 0
+#ifndef BJDATA_FINITE_MATH
+#define BJDATA_FINITE_MATH 0
 #endif
 
 
@@ -528,35 +528,35 @@ MPACK_EXTERN_C_START
 /*
  * Endianness checks
  *
- * These define MPACK_NHSWAP*() which swap network<->host byte
+ * These define BJDATA_NHSWAP*() which swap network<->host byte
  * order when needed.
  *
  * We leave them undefined if we can't determine the endianness
  * at compile-time, in which case we fall back to bit-shifts.
  *
- * See the notes in mpack-common.h.
+ * See the notes in bjd-common.h.
  */
 
 #if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && defined(__ORDER_BIG_ENDIAN__)
     #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-        #define MPACK_NHSWAP16(x) (x)
-        #define MPACK_NHSWAP32(x) (x)
-        #define MPACK_NHSWAP64(x) (x)
+        #define BJDATA_NHSWAP16(x) (x)
+        #define BJDATA_NHSWAP32(x) (x)
+        #define BJDATA_NHSWAP64(x) (x)
     #elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 
-        #if !MPACK_NO_BUILTINS
+        #if !BJDATA_NO_BUILTINS
             #if defined(__clang__)
                 #ifdef __has_builtin
                     // Unlike the GCC builtins, the bswap builtins in Clang
                     // significantly improve ARM performance.
                     #if __has_builtin(__builtin_bswap16)
-                        #define MPACK_NHSWAP16(x) __builtin_bswap16(x)
+                        #define BJDATA_NHSWAP16(x) __builtin_bswap16(x)
                     #endif
                     #if __has_builtin(__builtin_bswap32)
-                        #define MPACK_NHSWAP32(x) __builtin_bswap32(x)
+                        #define BJDATA_NHSWAP32(x) __builtin_bswap32(x)
                     #endif
                     #if __has_builtin(__builtin_bswap64)
-                        #define MPACK_NHSWAP64(x) __builtin_bswap64(x)
+                        #define BJDATA_NHSWAP64(x) __builtin_bswap64(x)
                     #endif
                 #endif
 
@@ -567,7 +567,7 @@ MPACK_EXTERN_C_START
                 //     http://hardwarebug.org/2010/01/14/beware-the-builtins/
 
                 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
-                    #define MPACK_NHSWAP64(x) __builtin_bswap64(x)
+                    #define BJDATA_NHSWAP64(x) __builtin_bswap64(x)
                 #endif
 
                 // __builtin_bswap16() was not implemented on all platforms
@@ -581,7 +581,7 @@ MPACK_EXTERN_C_START
         #endif
     #endif
 
-#elif defined(_MSC_VER) && defined(_WIN32) && !MPACK_NO_BUILTINS
+#elif defined(_MSC_VER) && defined(_WIN32) && !BJDATA_NO_BUILTINS
 
     // On Windows, we assume x86 and x86_64 are always little-endian.
     // We make no assumptions about ARM even though all current
@@ -589,9 +589,9 @@ MPACK_EXTERN_C_START
     // compiler is ever used with a big-endian ARM device.
 
     #if defined(_M_IX86) || defined(_M_X64) || defined(_M_AMD64)
-        #define MPACK_NHSWAP16(x) _byteswap_ushort(x)
-        #define MPACK_NHSWAP32(x) _byteswap_ulong(x)
-        #define MPACK_NHSWAP64(x) _byteswap_uint64(x)
+        #define BJDATA_NHSWAP16(x) _byteswap_ushort(x)
+        #define BJDATA_NHSWAP32(x) _byteswap_ulong(x)
+        #define BJDATA_NHSWAP64(x) _byteswap_uint64(x)
     #endif
 
 #endif
@@ -606,37 +606,37 @@ MPACK_EXTERN_C_START
     // of here because our static assert fallback doesn't work at
     // file scope)
 
-    #define MPACK_CHECK_FLOAT_ORDER() \
-        MPACK_STATIC_ASSERT(__FLOAT_WORD_ORDER__ == __BYTE_ORDER__, \
+    #define BJDATA_CHECK_FLOAT_ORDER() \
+        BJDATA_STATIC_ASSERT(__FLOAT_WORD_ORDER__ == __BYTE_ORDER__, \
             "float byte order does not match int byte order! float/double " \
             "encoding is not properly implemented on this platform.")
 
 #endif
 
-#ifndef MPACK_CHECK_FLOAT_ORDER
-    #define MPACK_CHECK_FLOAT_ORDER() /* nothing */
+#ifndef BJDATA_CHECK_FLOAT_ORDER
+    #define BJDATA_CHECK_FLOAT_ORDER() /* nothing */
 #endif
 
 
 /*
- * Here we define mpack_assert() and mpack_break(). They both work like a normal
+ * Here we define bjd_assert() and bjd_break(). They both work like a normal
  * assertion function in debug mode, causing a trap or abort. However, on some platforms
- * you can safely resume execution from mpack_break(), whereas mpack_assert() is
+ * you can safely resume execution from bjd_break(), whereas bjd_assert() is
  * always fatal.
  *
- * In release mode, mpack_assert() is converted to an assurance to the compiler
+ * In release mode, bjd_assert() is converted to an assurance to the compiler
  * that the expression cannot be false (via e.g. __assume() or __builtin_unreachable())
  * to improve optimization where supported. There is thus no point in "safely" handling
- * the case of this being false. Writing mpack_assert(0) rarely makes sense (except
+ * the case of this being false. Writing bjd_assert(0) rarely makes sense (except
  * possibly as a default handler in a switch) since the compiler will throw away any
- * code after it. If at any time an mpack_assert() is not true, the behaviour is
+ * code after it. If at any time an bjd_assert() is not true, the behaviour is
  * undefined. This also means the expression is evaluated even in release.
  *
- * mpack_break() on the other hand is compiled to nothing in release. It is
+ * bjd_break() on the other hand is compiled to nothing in release. It is
  * used in situations where we want to highlight a programming error as early as
  * possible (in the debugger), but we still handle the situation safely if it
  * happens in release to avoid producing incorrect results (such as in
- * MPACK_WRITE_TRACKING.) It does not take an expression to test because it
+ * BJDATA_WRITE_TRACKING.) It does not take an expression to test because it
  * belongs in a safe-handling block after its failing condition has been tested.
  *
  * If stdio is available, we can add a format string describing the error, and
@@ -644,15 +644,15 @@ MPACK_EXTERN_C_START
  * analysis tools. Note that the format string and arguments are not evaluated unless
  * the assertion is hit.
  *
- * Note that any arguments to mpack_assert() beyond the first are only evaluated
+ * Note that any arguments to bjd_assert() beyond the first are only evaluated
  * if the expression is false (and are never evaluated in release.)
  *
- * mpack_assert_fail() and mpack_break_hit() are defined separately
+ * bjd_assert_fail() and bjd_break_hit() are defined separately
  * because assert is noreturn and break isn't. This distinction is very
  * important for static analysis tools to give correct results.
  */
 
-#if MPACK_DEBUG
+#if BJDATA_DEBUG
 
     /**
      * @addtogroup config
@@ -662,18 +662,18 @@ MPACK_EXTERN_C_START
      * @name Debug Functions
      */
     /**
-     * Implement this and define @ref MPACK_CUSTOM_ASSERT to use a custom
+     * Implement this and define @ref BJDATA_CUSTOM_ASSERT to use a custom
      * assertion function.
      *
-     * This function should not return. If it does, MPack will @c abort().
+     * This function should not return. If it does, BJData will @c abort().
      *
-     * If you use C++, make sure you include @c mpack.h where you define
+     * If you use C++, make sure you include @c bjd.h where you define
      * this to get the correct linkage (or define it <code>extern "C"</code>.)
      *
-     * Asserts are only used when @ref MPACK_DEBUG is enabled, and can be
-     * triggered by bugs in MPack or bugs due to incorrect usage of MPack.
+     * Asserts are only used when @ref BJDATA_DEBUG is enabled, and can be
+     * triggered by bugs in BJData or bugs due to incorrect usage of BJData.
      */
-    void mpack_assert_fail(const char* message);
+    void bjd_assert_fail(const char* message);
     /**
      * @}
      */
@@ -681,18 +681,18 @@ MPACK_EXTERN_C_START
      * @}
      */
 
-    MPACK_NORETURN(void mpack_assert_fail_wrapper(const char* message));
-    #if MPACK_STDIO
-        MPACK_NORETURN(void mpack_assert_fail_format(const char* format, ...));
-        #define mpack_assert_fail_at(line, file, exprstr, format, ...) \
-                MPACK_EXPAND(mpack_assert_fail_format("mpack assertion failed at " file ":" #line "\n%s\n" format, exprstr, __VA_ARGS__))
+    BJDATA_NORETURN(void bjd_assert_fail_wrapper(const char* message));
+    #if BJDATA_STDIO
+        BJDATA_NORETURN(void bjd_assert_fail_format(const char* format, ...));
+        #define bjd_assert_fail_at(line, file, exprstr, format, ...) \
+                BJDATA_EXPAND(bjd_assert_fail_format("bjd assertion failed at " file ":" #line "\n%s\n" format, exprstr, __VA_ARGS__))
     #else
-        #define mpack_assert_fail_at(line, file, exprstr, format, ...) \
-                mpack_assert_fail_wrapper("mpack assertion failed at " file ":" #line "\n" exprstr "\n")
+        #define bjd_assert_fail_at(line, file, exprstr, format, ...) \
+                bjd_assert_fail_wrapper("bjd assertion failed at " file ":" #line "\n" exprstr "\n")
     #endif
 
-    #define mpack_assert_fail_pos(line, file, exprstr, expr, ...) \
-            MPACK_EXPAND(mpack_assert_fail_at(line, file, exprstr, __VA_ARGS__))
+    #define bjd_assert_fail_pos(line, file, exprstr, expr, ...) \
+            BJDATA_EXPAND(bjd_assert_fail_at(line, file, exprstr, __VA_ARGS__))
 
     // This contains a workaround to the pedantic C99 requirement of having at
     // least one argument to a variadic macro. The first argument is the
@@ -705,46 +705,46 @@ MPACK_EXTERN_C_START
     //
     // This adds two unused arguments to the format argument list when a
     // format string is provided, so this would complicate the use of
-    // -Wformat and __attribute__((format)) on mpack_assert_fail_format() if we
+    // -Wformat and __attribute__((format)) on bjd_assert_fail_format() if we
     // ever bothered to implement it.
-    #define mpack_assert(...) \
-            MPACK_EXPAND(((!(MPACK_EXTRACT_ARG0(__VA_ARGS__))) ? \
-                mpack_assert_fail_pos(__LINE__, __FILE__, MPACK_STRINGIFY_ARG0(__VA_ARGS__) , __VA_ARGS__ , "", NULL) : \
+    #define bjd_assert(...) \
+            BJDATA_EXPAND(((!(BJDATA_EXTRACT_ARG0(__VA_ARGS__))) ? \
+                bjd_assert_fail_pos(__LINE__, __FILE__, BJDATA_STRINGIFY_ARG0(__VA_ARGS__) , __VA_ARGS__ , "", NULL) : \
                 (void)0))
 
-    void mpack_break_hit(const char* message);
-    #if MPACK_STDIO
-        void mpack_break_hit_format(const char* format, ...);
-        #define mpack_break_hit_at(line, file, ...) \
-                MPACK_EXPAND(mpack_break_hit_format("mpack breakpoint hit at " file ":" #line "\n" __VA_ARGS__))
+    void bjd_break_hit(const char* message);
+    #if BJDATA_STDIO
+        void bjd_break_hit_format(const char* format, ...);
+        #define bjd_break_hit_at(line, file, ...) \
+                BJDATA_EXPAND(bjd_break_hit_format("bjd breakpoint hit at " file ":" #line "\n" __VA_ARGS__))
     #else
-        #define mpack_break_hit_at(line, file, ...) \
-                mpack_break_hit("mpack breakpoint hit at " file ":" #line )
+        #define bjd_break_hit_at(line, file, ...) \
+                bjd_break_hit("bjd breakpoint hit at " file ":" #line )
     #endif
-    #define mpack_break_hit_pos(line, file, ...) MPACK_EXPAND(mpack_break_hit_at(line, file, __VA_ARGS__))
-    #define mpack_break(...) MPACK_EXPAND(mpack_break_hit_pos(__LINE__, __FILE__, __VA_ARGS__))
+    #define bjd_break_hit_pos(line, file, ...) BJDATA_EXPAND(bjd_break_hit_at(line, file, __VA_ARGS__))
+    #define bjd_break(...) BJDATA_EXPAND(bjd_break_hit_pos(__LINE__, __FILE__, __VA_ARGS__))
 #else
-    #define mpack_assert(...) \
-            (MPACK_EXPAND((!(MPACK_EXTRACT_ARG0(__VA_ARGS__))) ? \
-                (MPACK_UNREACHABLE, (void)0) : \
+    #define bjd_assert(...) \
+            (BJDATA_EXPAND((!(BJDATA_EXTRACT_ARG0(__VA_ARGS__))) ? \
+                (BJDATA_UNREACHABLE, (void)0) : \
                 (void)0))
-    #define mpack_break(...) ((void)0)
+    #define bjd_break(...) ((void)0)
 #endif
 
 
 
 /* Wrap some needed libc functions */
 
-#if MPACK_STDLIB
-    #define mpack_memcmp memcmp
-    #define mpack_memcpy memcpy
-    #define mpack_memmove memmove
-    #define mpack_memset memset
-    #ifndef mpack_strlen
-        #define mpack_strlen strlen
+#if BJDATA_STDLIB
+    #define bjd_memcmp memcmp
+    #define bjd_memcpy memcpy
+    #define bjd_memmove memmove
+    #define bjd_memset memset
+    #ifndef bjd_strlen
+        #define bjd_strlen strlen
     #endif
 
-    #if defined(MPACK_UNIT_TESTS) && MPACK_INTERNAL && defined(__GNUC__)
+    #if defined(BJDATA_UNIT_TESTS) && BJDATA_INTERNAL && defined(__GNUC__)
         // make sure we don't use the stdlib directly during development
         #undef memcmp
         #undef memcpy
@@ -762,53 +762,53 @@ MPACK_EXTERN_C_START
         #pragma GCC poison free
     #endif
 
-#elif defined(__GNUC__) && !MPACK_NO_BUILTINS
+#elif defined(__GNUC__) && !BJDATA_NO_BUILTINS
     // there's not always a builtin memmove for GCC,
     // and we don't have a way to test for it
-    #define mpack_memcmp __builtin_memcmp
-    #define mpack_memcpy __builtin_memcpy
-    #define mpack_memset __builtin_memset
-    #define mpack_strlen __builtin_strlen
+    #define bjd_memcmp __builtin_memcmp
+    #define bjd_memcpy __builtin_memcpy
+    #define bjd_memset __builtin_memset
+    #define bjd_strlen __builtin_strlen
 
-#elif defined(__clang__) && defined(__has_builtin) && !MPACK_NO_BUILTINS
+#elif defined(__clang__) && defined(__has_builtin) && !BJDATA_NO_BUILTINS
     #if __has_builtin(__builtin_memcmp)
-    #define mpack_memcmp __builtin_memcmp
+    #define bjd_memcmp __builtin_memcmp
     #endif
     #if __has_builtin(__builtin_memcpy)
-    #define mpack_memcpy __builtin_memcpy
+    #define bjd_memcpy __builtin_memcpy
     #endif
     #if __has_builtin(__builtin_memmove)
-    #define mpack_memmove __builtin_memmove
+    #define bjd_memmove __builtin_memmove
     #endif
     #if __has_builtin(__builtin_memset)
-    #define mpack_memset __builtin_memset
+    #define bjd_memset __builtin_memset
     #endif
     #if __has_builtin(__builtin_strlen)
-    #define mpack_strlen __builtin_strlen
+    #define bjd_strlen __builtin_strlen
     #endif
 #endif
 
-#ifndef mpack_memcmp
-int mpack_memcmp(const void* s1, const void* s2, size_t n);
+#ifndef bjd_memcmp
+int bjd_memcmp(const void* s1, const void* s2, size_t n);
 #endif
-#ifndef mpack_memcpy
-void* mpack_memcpy(void* MPACK_RESTRICT s1, const void* MPACK_RESTRICT s2, size_t n);
+#ifndef bjd_memcpy
+void* bjd_memcpy(void* BJDATA_RESTRICT s1, const void* BJDATA_RESTRICT s2, size_t n);
 #endif
-#ifndef mpack_memmove
-void* mpack_memmove(void* s1, const void* s2, size_t n);
+#ifndef bjd_memmove
+void* bjd_memmove(void* s1, const void* s2, size_t n);
 #endif
-#ifndef mpack_memset
-void* mpack_memset(void* s, int c, size_t n);
+#ifndef bjd_memset
+void* bjd_memset(void* s, int c, size_t n);
 #endif
-#ifndef mpack_strlen
-size_t mpack_strlen(const char* s);
+#ifndef bjd_strlen
+size_t bjd_strlen(const char* s);
 #endif
 
-#if MPACK_STDIO
+#if BJDATA_STDIO
     #if defined(WIN32)
-        #define mpack_snprintf _snprintf
+        #define bjd_snprintf _snprintf
     #else
-        #define mpack_snprintf snprintf
+        #define bjd_snprintf snprintf
     #endif
 #endif
 
@@ -817,49 +817,49 @@ size_t mpack_strlen(const char* s);
 /* Debug logging */
 #if 0
     #include <stdio.h>
-    #define mpack_log(...) (MPACK_EXPAND(printf(__VA_ARGS__)), fflush(stdout))
+    #define bjd_log(...) (BJDATA_EXPAND(printf(__VA_ARGS__)), fflush(stdout))
 #else
-    #define mpack_log(...) ((void)0)
+    #define bjd_log(...) ((void)0)
 #endif
 
 
 
 /* Make sure our configuration makes sense */
-#if defined(MPACK_MALLOC) && !defined(MPACK_FREE)
-    #error "MPACK_MALLOC requires MPACK_FREE."
+#if defined(BJDATA_MALLOC) && !defined(BJDATA_FREE)
+    #error "BJDATA_MALLOC requires BJDATA_FREE."
 #endif
-#if !defined(MPACK_MALLOC) && defined(MPACK_FREE)
-    #error "MPACK_FREE requires MPACK_MALLOC."
+#if !defined(BJDATA_MALLOC) && defined(BJDATA_FREE)
+    #error "BJDATA_FREE requires BJDATA_MALLOC."
 #endif
-#if MPACK_READ_TRACKING && !defined(MPACK_READER)
-    #error "MPACK_READ_TRACKING requires MPACK_READER."
+#if BJDATA_READ_TRACKING && !defined(BJDATA_READER)
+    #error "BJDATA_READ_TRACKING requires BJDATA_READER."
 #endif
-#if MPACK_WRITE_TRACKING && !defined(MPACK_WRITER)
-    #error "MPACK_WRITE_TRACKING requires MPACK_WRITER."
+#if BJDATA_WRITE_TRACKING && !defined(BJDATA_WRITER)
+    #error "BJDATA_WRITE_TRACKING requires BJDATA_WRITER."
 #endif
-#ifndef MPACK_MALLOC
-    #if MPACK_STDIO
-        #error "MPACK_STDIO requires preprocessor definitions for MPACK_MALLOC and MPACK_FREE."
+#ifndef BJDATA_MALLOC
+    #if BJDATA_STDIO
+        #error "BJDATA_STDIO requires preprocessor definitions for BJDATA_MALLOC and BJDATA_FREE."
     #endif
-    #if MPACK_READ_TRACKING
-        #error "MPACK_READ_TRACKING requires preprocessor definitions for MPACK_MALLOC and MPACK_FREE."
+    #if BJDATA_READ_TRACKING
+        #error "BJDATA_READ_TRACKING requires preprocessor definitions for BJDATA_MALLOC and BJDATA_FREE."
     #endif
-    #if MPACK_WRITE_TRACKING
-        #error "MPACK_WRITE_TRACKING requires preprocessor definitions for MPACK_MALLOC and MPACK_FREE."
+    #if BJDATA_WRITE_TRACKING
+        #error "BJDATA_WRITE_TRACKING requires preprocessor definitions for BJDATA_MALLOC and BJDATA_FREE."
     #endif
 #endif
 
 
 
 /* Implement realloc if unavailable */
-#ifdef MPACK_MALLOC
-    #ifdef MPACK_REALLOC
-        MPACK_INLINE void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size) {
-            MPACK_UNUSED(used_size);
-            return MPACK_REALLOC(old_ptr, new_size);
+#ifdef BJDATA_MALLOC
+    #ifdef BJDATA_REALLOC
+        BJDATA_INLINE void* bjd_realloc(void* old_ptr, size_t used_size, size_t new_size) {
+            BJDATA_UNUSED(used_size);
+            return BJDATA_REALLOC(old_ptr, new_size);
         }
     #else
-        void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size);
+        void* bjd_realloc(void* old_ptr, size_t used_size, size_t new_size);
     #endif
 #endif
 
@@ -869,8 +869,8 @@ size_t mpack_strlen(const char* s);
  * @}
  */
 
-MPACK_EXTERN_C_END
-MPACK_HEADER_END
+BJDATA_EXTERN_C_END
+BJDATA_HEADER_END
 
 #endif
 

@@ -20,51 +20,51 @@
  */
 
 
-// We define MPACK_EMIT_INLINE_DEFS and include mpack.h to emit
-// standalone definitions of all (non-static) inline functions in MPack.
+// We define BJDATA_EMIT_INLINE_DEFS and include bjd.h to emit
+// standalone definitions of all (non-static) inline functions in BJData.
 
-#define MPACK_INTERNAL 1
-#define MPACK_EMIT_INLINE_DEFS 1
+#define BJDATA_INTERNAL 1
+#define BJDATA_EMIT_INLINE_DEFS 1
 
-#include "mpack-platform.h"
-#include "mpack.h"
+#include "bjd-platform.h"
+#include "bjd.h"
 
 
-#if MPACK_DEBUG && MPACK_STDIO
+#if BJDATA_DEBUG && BJDATA_STDIO
 #include <stdarg.h>
 #endif
 
 
 
-#if MPACK_DEBUG
+#if BJDATA_DEBUG
 
-#if MPACK_STDIO
-void mpack_assert_fail_format(const char* format, ...) {
+#if BJDATA_STDIO
+void bjd_assert_fail_format(const char* format, ...) {
     char buffer[512];
     va_list args;
     va_start(args, format);
     vsnprintf(buffer, sizeof(buffer), format, args);
     va_end(args);
     buffer[sizeof(buffer) - 1] = 0;
-    mpack_assert_fail_wrapper(buffer);
+    bjd_assert_fail_wrapper(buffer);
 }
 
-void mpack_break_hit_format(const char* format, ...) {
+void bjd_break_hit_format(const char* format, ...) {
     char buffer[512];
     va_list args;
     va_start(args, format);
     vsnprintf(buffer, sizeof(buffer), format, args);
     va_end(args);
     buffer[sizeof(buffer) - 1] = 0;
-    mpack_break_hit(buffer);
+    bjd_break_hit(buffer);
 }
 #endif
 
-#if !MPACK_CUSTOM_ASSERT
-void mpack_assert_fail(const char* message) {
-    MPACK_UNUSED(message);
+#if !BJDATA_CUSTOM_ASSERT
+void bjd_assert_fail(const char* message) {
+    BJDATA_UNUSED(message);
 
-    #if MPACK_STDIO
+    #if BJDATA_STDIO
     fprintf(stderr, "%s\n", message);
     #endif
 }
@@ -72,20 +72,20 @@ void mpack_assert_fail(const char* message) {
 
 // We split the assert failure from the wrapper so that a
 // custom assert function can return.
-void mpack_assert_fail_wrapper(const char* message) {
+void bjd_assert_fail_wrapper(const char* message) {
 
-    #ifdef MPACK_GCOV
+    #ifdef BJDATA_GCOV
     // gcov marks even __builtin_unreachable() as an uncovered line. this
     // silences it.
-    (mpack_assert_fail(message), __builtin_unreachable());
+    (bjd_assert_fail(message), __builtin_unreachable());
 
     #else
-    mpack_assert_fail(message);
+    bjd_assert_fail(message);
 
-    // mpack_assert_fail() is not supposed to return. in case it does, we
+    // bjd_assert_fail() is not supposed to return. in case it does, we
     // abort.
 
-    #if !MPACK_NO_BUILTINS
+    #if !BJDATA_NO_BUILTINS
     #if defined(__GNUC__) || defined(__clang__)
     __builtin_trap();
     #elif defined(WIN32)
@@ -93,43 +93,43 @@ void mpack_assert_fail_wrapper(const char* message) {
     #endif
     #endif
 
-    #if (defined(__GNUC__) || defined(__clang__)) && !MPACK_NO_BUILTINS
+    #if (defined(__GNUC__) || defined(__clang__)) && !BJDATA_NO_BUILTINS
     __builtin_abort();
-    #elif MPACK_STDLIB
+    #elif BJDATA_STDLIB
     abort();
     #endif
 
-    MPACK_UNREACHABLE;
+    BJDATA_UNREACHABLE;
     #endif
 }
 
-#if !MPACK_CUSTOM_BREAK
+#if !BJDATA_CUSTOM_BREAK
 
 // If we have a custom assert handler, break wraps it by default.
-// This allows users of MPack to only implement mpack_assert_fail() without
+// This allows users of BJData to only implement bjd_assert_fail() without
 // having to worry about the difference between assert and break.
 //
-// MPACK_CUSTOM_BREAK is available to define a separate break handler
+// BJDATA_CUSTOM_BREAK is available to define a separate break handler
 // (which is needed by the unit test suite), but this is not offered in
-// mpack-config.h for simplicity.
+// bjd-config.h for simplicity.
 
-#if MPACK_CUSTOM_ASSERT
-void mpack_break_hit(const char* message) {
-    mpack_assert_fail_wrapper(message);
+#if BJDATA_CUSTOM_ASSERT
+void bjd_break_hit(const char* message) {
+    bjd_assert_fail_wrapper(message);
 }
 #else
-void mpack_break_hit(const char* message) {
-    MPACK_UNUSED(message);
+void bjd_break_hit(const char* message) {
+    BJDATA_UNUSED(message);
 
-    #if MPACK_STDIO
+    #if BJDATA_STDIO
     fprintf(stderr, "%s\n", message);
     #endif
 
-    #if defined(__GNUC__) || defined(__clang__) && !MPACK_NO_BUILTINS
+    #if defined(__GNUC__) || defined(__clang__) && !BJDATA_NO_BUILTINS
     __builtin_trap();
-    #elif defined(WIN32) && !MPACK_NO_BUILTINS
+    #elif defined(WIN32) && !BJDATA_NO_BUILTINS
     __debugbreak();
-    #elif MPACK_STDLIB
+    #elif BJDATA_STDLIB
     abort();
     #endif
 }
@@ -144,8 +144,8 @@ void mpack_break_hit(const char* message) {
 // The below are adapted from the C wikibook:
 //     https://en.wikibooks.org/wiki/C_Programming/Strings
 
-#ifndef mpack_memcmp
-int mpack_memcmp(const void* s1, const void* s2, size_t n) {
+#ifndef bjd_memcmp
+int bjd_memcmp(const void* s1, const void* s2, size_t n) {
      const unsigned char *us1 = (const unsigned char *) s1;
      const unsigned char *us2 = (const unsigned char *) s2;
      while (n-- != 0) {
@@ -158,18 +158,18 @@ int mpack_memcmp(const void* s1, const void* s2, size_t n) {
 }
 #endif
 
-#ifndef mpack_memcpy
-void* mpack_memcpy(void* MPACK_RESTRICT s1, const void* MPACK_RESTRICT s2, size_t n) {
-    char* MPACK_RESTRICT dst = (char *)s1;
-    const char* MPACK_RESTRICT src = (const char *)s2;
+#ifndef bjd_memcpy
+void* bjd_memcpy(void* BJDATA_RESTRICT s1, const void* BJDATA_RESTRICT s2, size_t n) {
+    char* BJDATA_RESTRICT dst = (char *)s1;
+    const char* BJDATA_RESTRICT src = (const char *)s2;
     while (n-- != 0)
         *dst++ = *src++;
     return s1;
 }
 #endif
 
-#ifndef mpack_memmove
-void* mpack_memmove(void* s1, const void* s2, size_t n) {
+#ifndef bjd_memmove
+void* bjd_memmove(void* s1, const void* s2, size_t n) {
     char *p1 = (char *)s1;
     const char *p2 = (const char *)s2;
     if (p2 < p1 && p1 < p2 + n) {
@@ -184,8 +184,8 @@ void* mpack_memmove(void* s1, const void* s2, size_t n) {
 }
 #endif
 
-#ifndef mpack_memset
-void* mpack_memset(void* s, int c, size_t n) {
+#ifndef bjd_memset
+void* bjd_memset(void* s, int c, size_t n) {
     unsigned char *us = (unsigned char *)s;
     unsigned char uc = (unsigned char)c;
     while (n-- != 0)
@@ -194,8 +194,8 @@ void* mpack_memset(void* s, int c, size_t n) {
 }
 #endif
 
-#ifndef mpack_strlen
-size_t mpack_strlen(const char* s) {
+#ifndef bjd_strlen
+size_t bjd_strlen(const char* s) {
     const char* p = s;
     while (*p != '\0')
         p++;
@@ -205,20 +205,20 @@ size_t mpack_strlen(const char* s) {
 
 
 
-#if defined(MPACK_MALLOC) && !defined(MPACK_REALLOC)
-void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size) {
+#if defined(BJDATA_MALLOC) && !defined(BJDATA_REALLOC)
+void* bjd_realloc(void* old_ptr, size_t used_size, size_t new_size) {
     if (new_size == 0) {
         if (old_ptr)
-            MPACK_FREE(old_ptr);
+            BJDATA_FREE(old_ptr);
         return NULL;
     }
 
-    void* new_ptr = MPACK_MALLOC(new_size);
+    void* new_ptr = BJDATA_MALLOC(new_size);
     if (new_ptr == NULL)
         return NULL;
 
-    mpack_memcpy(new_ptr, old_ptr, used_size);
-    MPACK_FREE(old_ptr);
+    bjd_memcpy(new_ptr, old_ptr, used_size);
+    BJDATA_FREE(old_ptr);
     return new_ptr;
 }
 #endif
