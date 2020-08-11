@@ -513,7 +513,7 @@ size_t bjd_expect_utf8(bjd_reader_t* reader, char* buf, size_t size) {
 
 uint32_t bjd_expect_bin(bjd_reader_t* reader) {
     bjd_tag_t var = bjd_read_tag(reader);
-    if (var.type == bjd_type_bin)
+    if (var.type == bjd_type_huge)
         return var.v.l;
     bjd_reader_flag_error(reader, bjd_error_type);
     return 0;

@@ -591,322 +591,127 @@ static size_t bjd_parse_tag(bjd_reader_t* reader, bjd_tag_t* tag) {
     // handle most infix types with a smaller jump table to save space.
 
     #if BJDATA_OPTIMIZE_FOR_SIZE
-    switch (type >> 4) {
-
-        // positive fixnum
-        case 0x0: case 0x1: case 0x2: case 0x3:
-        case 0x4: case 0x5: case 0x6: case 0x7:
-            *tag = bjd_tag_make_uint(type);
-            return 1;
-
-        // negative fixnum
-        case 0xe: case 0xf:
-            *tag = bjd_tag_make_int((int8_t)type);
-            return 1;
-
-        // fixmap
-        case 0x8:
-            *tag = bjd_tag_make_map(type & ~0xf0u);
-            return 1;
-
-        // fixarray
-        case 0x9:
-            *tag = bjd_tag_make_array(type & ~0xf0u);
-            return 1;
-
-        // fixstr
-        case 0xa: case 0xb:
-            *tag = bjd_tag_make_str(type & ~0xe0u);
-            return 1;
-
-        // not one of the common infix types
-        default:
-            break;
-
-    }
-    #endif
 
     // handle individual type tags
     switch (type) {
-
-        #if !BJDATA_OPTIMIZE_FOR_SIZE
-        // positive fixnum
-        case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07:
-        case 0x08: case 0x09: case 0x0a: case 0x0b: case 0x0c: case 0x0d: case 0x0e: case 0x0f:
-        case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17:
-        case 0x18: case 0x19: case 0x1a: case 0x1b: case 0x1c: case 0x1d: case 0x1e: case 0x1f:
-        case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25: case 0x26: case 0x27:
-        case 0x28: case 0x29: case 0x2a: case 0x2b: case 0x2c: case 0x2d: case 0x2e: case 0x2f:
-        case 0x30: case 0x31: case 0x32: case 0x33: case 0x34: case 0x35: case 0x36: case 0x37:
-        case 0x38: case 0x39: case 0x3a: case 0x3b: case 0x3c: case 0x3d: case 0x3e: case 0x3f:
-        case 0x40: case 0x41: case 0x42: case 0x43: case 0x44: case 0x45: case 0x46: case 0x47:
-        case 0x48: case 0x49: case 0x4a: case 0x4b: case 0x4c: case 0x4d: case 0x4e: case 0x4f:
-        case 0x50: case 0x51: case 0x52: case 0x53: case 0x54: case 0x55: case 0x56: case 0x57:
-        case 0x58: case 0x59: case 0x5a: case 0x5b: case 0x5c: case 0x5d: case 0x5e: case 0x5f:
-        case 0x60: case 0x61: case 0x62: case 0x63: case 0x64: case 0x65: case 0x66: case 0x67:
-        case 0x68: case 0x69: case 0x6a: case 0x6b: case 0x6c: case 0x6d: case 0x6e: case 0x6f:
-        case 0x70: case 0x71: case 0x72: case 0x73: case 0x74: case 0x75: case 0x76: case 0x77:
-        case 0x78: case 0x79: case 0x7a: case 0x7b: case 0x7c: case 0x7d: case 0x7e: case 0x7f:
-            *tag = bjd_tag_make_uint(type);
-            return 1;
-
-        // negative fixnum
-        case 0xe0: case 0xe1: case 0xe2: case 0xe3: case 0xe4: case 0xe5: case 0xe6: case 0xe7:
-        case 0xe8: case 0xe9: case 0xea: case 0xeb: case 0xec: case 0xed: case 0xee: case 0xef:
-        case 0xf0: case 0xf1: case 0xf2: case 0xf3: case 0xf4: case 0xf5: case 0xf6: case 0xf7:
-        case 0xf8: case 0xf9: case 0xfa: case 0xfb: case 0xfc: case 0xfd: case 0xfe: case 0xff:
-            *tag = bjd_tag_make_int((int8_t)type);
-            return 1;
-
-        // fixmap
-        case 0x80: case 0x81: case 0x82: case 0x83: case 0x84: case 0x85: case 0x86: case 0x87:
-        case 0x88: case 0x89: case 0x8a: case 0x8b: case 0x8c: case 0x8d: case 0x8e: case 0x8f:
-            *tag = bjd_tag_make_map(type & ~0xf0u);
-            return 1;
-
-        // fixarray
-        case 0x90: case 0x91: case 0x92: case 0x93: case 0x94: case 0x95: case 0x96: case 0x97:
-        case 0x98: case 0x99: case 0x9a: case 0x9b: case 0x9c: case 0x9d: case 0x9e: case 0x9f:
-            *tag = bjd_tag_make_array(type & ~0xf0u);
-            return 1;
-
-        // fixstr
-        case 0xa0: case 0xa1: case 0xa2: case 0xa3: case 0xa4: case 0xa5: case 0xa6: case 0xa7:
-        case 0xa8: case 0xa9: case 0xaa: case 0xab: case 0xac: case 0xad: case 0xae: case 0xaf:
-        case 0xb0: case 0xb1: case 0xb2: case 0xb3: case 0xb4: case 0xb5: case 0xb6: case 0xb7:
-        case 0xb8: case 0xb9: case 0xba: case 0xbb: case 0xbc: case 0xbd: case 0xbe: case 0xbf:
-            *tag = bjd_tag_make_str(type & ~0xe0u);
-            return 1;
-        #endif
-
         // nil
-        case 0xc0:
+        case 'Z':
             *tag = bjd_tag_make_nil();
             return 1;
 
+        // no-op
+        case 'N':
+            *tag = bjd_tag_make_noop();
+            return 1;
+
         // bool
-        case 0xc2: case 0xc3:
+        case 'F': case 'T':
             *tag = bjd_tag_make_bool((bool)(type & 1));
             return 1;
 
-        // bin8
-        case 0xc4:
-            if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_BIN8))
-                return 0;
-            *tag = bjd_tag_make_bin(bjd_load_u8(reader->data + 1));
-            return BJDATA_TAG_SIZE_BIN8;
-
-        // bin16
-        case 0xc5:
-            if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_BIN16))
-                return 0;
-            *tag = bjd_tag_make_bin(bjd_load_u16(reader->data + 1));
-            return BJDATA_TAG_SIZE_BIN16;
-
-        // bin32
-        case 0xc6:
-            if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_BIN32))
-                return 0;
-            *tag = bjd_tag_make_bin(bjd_load_u32(reader->data + 1));
-            return BJDATA_TAG_SIZE_BIN32;
-
-        #if BJDATA_EXTENSIONS
-        // ext8
-        case 0xc7:
-            if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_EXT8))
-                return 0;
-            *tag = bjd_tag_make_ext(bjd_load_i8(reader->data + 2), bjd_load_u8(reader->data + 1));
-            return BJDATA_TAG_SIZE_EXT8;
-
-        // ext16
-        case 0xc8:
-            if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_EXT16))
-                return 0;
-            *tag = bjd_tag_make_ext(bjd_load_i8(reader->data + 3), bjd_load_u16(reader->data + 1));
-            return BJDATA_TAG_SIZE_EXT16;
-
-        // ext32
-        case 0xc9:
-            if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_EXT32))
-                return 0;
-            *tag = bjd_tag_make_ext(bjd_load_i8(reader->data + 5), bjd_load_u32(reader->data + 1));
-            return BJDATA_TAG_SIZE_EXT32;
-        #endif
-
         // float
-        case 0xca:
+        case 'd':
             if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_FLOAT))
                 return 0;
             *tag = bjd_tag_make_float(bjd_load_float(reader->data + 1));
             return BJDATA_TAG_SIZE_FLOAT;
 
         // double
-        case 0xcb:
+        case 'D':
             if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_DOUBLE))
                 return 0;
             *tag = bjd_tag_make_double(bjd_load_double(reader->data + 1));
             return BJDATA_TAG_SIZE_DOUBLE;
 
         // uint8
-        case 0xcc:
+        case 'U':
             if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_U8))
                 return 0;
             *tag = bjd_tag_make_uint(bjd_load_u8(reader->data + 1));
             return BJDATA_TAG_SIZE_U8;
 
         // uint16
-        case 0xcd:
+        case 'u':
             if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_U16))
                 return 0;
             *tag = bjd_tag_make_uint(bjd_load_u16(reader->data + 1));
             return BJDATA_TAG_SIZE_U16;
 
         // uint32
-        case 0xce:
+        case 'm':
             if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_U32))
                 return 0;
             *tag = bjd_tag_make_uint(bjd_load_u32(reader->data + 1));
             return BJDATA_TAG_SIZE_U32;
 
         // uint64
-        case 0xcf:
+        case 'M':
             if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_U64))
                 return 0;
             *tag = bjd_tag_make_uint(bjd_load_u64(reader->data + 1));
             return BJDATA_TAG_SIZE_U64;
 
         // int8
-        case 0xd0:
+        case 'i':
             if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_I8))
                 return 0;
             *tag = bjd_tag_make_int(bjd_load_i8(reader->data + 1));
             return BJDATA_TAG_SIZE_I8;
 
         // int16
-        case 0xd1:
+        case 'I':
             if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_I16))
                 return 0;
             *tag = bjd_tag_make_int(bjd_load_i16(reader->data + 1));
             return BJDATA_TAG_SIZE_I16;
 
         // int32
-        case 0xd2:
+        case 'l':
             if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_I32))
                 return 0;
             *tag = bjd_tag_make_int(bjd_load_i32(reader->data + 1));
             return BJDATA_TAG_SIZE_I32;
 
         // int64
-        case 0xd3:
+        case 'L':
             if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_I64))
                 return 0;
             *tag = bjd_tag_make_int(bjd_load_i64(reader->data + 1));
             return BJDATA_TAG_SIZE_I64;
 
-        #if BJDATA_EXTENSIONS
-        // fixext1
-        case 0xd4:
-            if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_FIXEXT1))
-                return 0;
-            *tag = bjd_tag_make_ext(bjd_load_i8(reader->data + 1), 1);
-            return BJDATA_TAG_SIZE_FIXEXT1;
-
-        // fixext2
-        case 0xd5:
-            if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_FIXEXT2))
-                return 0;
-            *tag = bjd_tag_make_ext(bjd_load_i8(reader->data + 1), 2);
-            return BJDATA_TAG_SIZE_FIXEXT2;
-
-        // fixext4
-        case 0xd6:
-            if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_FIXEXT4))
-                return 0;
-            *tag = bjd_tag_make_ext(bjd_load_i8(reader->data + 1), 4);
-            return 2;
-
-        // fixext8
-        case 0xd7:
-            if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_FIXEXT8))
-                return 0;
-            *tag = bjd_tag_make_ext(bjd_load_i8(reader->data + 1), 8);
-            return BJDATA_TAG_SIZE_FIXEXT8;
-
-        // fixext16
-        case 0xd8:
-            if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_FIXEXT16))
-                return 0;
-            *tag = bjd_tag_make_ext(bjd_load_i8(reader->data + 1), 16);
-            return BJDATA_TAG_SIZE_FIXEXT16;
-        #endif
-
-        // str8
-        case 0xd9:
+        // str
+        case 'S':
             if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_STR8))
                 return 0;
             *tag = bjd_tag_make_str(bjd_load_u8(reader->data + 1));
             return BJDATA_TAG_SIZE_STR8;
 
-        // str16
-        case 0xda:
-            if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_STR16))
+        // huge
+        case 'H':
+            if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_STR8))
                 return 0;
-            *tag = bjd_tag_make_str(bjd_load_u16(reader->data + 1));
-            return BJDATA_TAG_SIZE_STR16;
+            *tag = bjd_tag_make_str(bjd_load_u8(reader->data + 1));
+            return BJDATA_TAG_SIZE_STR8;
 
-        // str32
-        case 0xdb:
-            if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_STR32))
-                return 0;
-            *tag = bjd_tag_make_str(bjd_load_u32(reader->data + 1));
-            return BJDATA_TAG_SIZE_STR32;
-
-        // array16
-        case 0xdc:
+        // array
+        case '[':
             if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_ARRAY16))
                 return 0;
             *tag = bjd_tag_make_array(bjd_load_u16(reader->data + 1));
             return BJDATA_TAG_SIZE_ARRAY16;
 
-        // array32
-        case 0xdd:
-            if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_ARRAY32))
-                return 0;
-            *tag = bjd_tag_make_array(bjd_load_u32(reader->data + 1));
-            return BJDATA_TAG_SIZE_ARRAY32;
-
-        // map16
-        case 0xde:
+        // map
+        case '{':
             if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_MAP16))
                 return 0;
             *tag = bjd_tag_make_map(bjd_load_u16(reader->data + 1));
             return BJDATA_TAG_SIZE_MAP16;
 
-        // map32
-        case 0xdf:
-            if (!bjd_reader_ensure(reader, BJDATA_TAG_SIZE_MAP32))
-                return 0;
-            *tag = bjd_tag_make_map(bjd_load_u32(reader->data + 1));
-            return BJDATA_TAG_SIZE_MAP32;
-
         // reserved
-        case 0xc1:
+        case 'X':
             bjd_reader_flag_error(reader, bjd_error_invalid);
             return 0;
 
-        #if !BJDATA_EXTENSIONS
-        // ext
-        case 0xc7: // fallthrough
-        case 0xc8: // fallthrough
-        case 0xc9: // fallthrough
-        // fixext
-        case 0xd4: // fallthrough
-        case 0xd5: // fallthrough
-        case 0xd6: // fallthrough
-        case 0xd7: // fallthrough
-        case 0xd8:
-            bjd_reader_flag_error(reader, bjd_error_unsupported);
-            return 0;
         #endif
 
         #if BJDATA_OPTIMIZE_FOR_SIZE
@@ -946,7 +751,7 @@ bjd_tag_t bjd_read_tag(bjd_reader_t* reader) {
         case bjd_type_ext:
         #endif
         case bjd_type_str:
-        case bjd_type_bin:
+        case bjd_type_huge:
             track_error = bjd_track_push(&reader->track, tag.type, tag.v.l);
             break;
         default:
@@ -987,7 +792,7 @@ void bjd_discard(bjd_reader_t* reader) {
             bjd_skip_bytes(reader, var.v.l);
             bjd_done_str(reader);
             break;
-        case bjd_type_bin:
+        case bjd_type_huge:
             bjd_skip_bytes(reader, var.v.l);
             bjd_done_bin(reader);
             break;
@@ -1160,7 +965,7 @@ static void bjd_print_element(bjd_reader_t* reader, bjd_print_t* print, size_t d
         // The above cases return so as not to print a pseudo-json value. The
         // below cases break and print pseudo-json.
 
-        case bjd_type_bin:
+        case bjd_type_huge:
             count = bjd_print_read_prefix(reader, bjd_tag_bin_length(&val), buffer, sizeof(buffer));
             bjd_done_bin(reader);
             break;

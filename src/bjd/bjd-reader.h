@@ -792,7 +792,7 @@ BJDATA_INLINE void bjd_done_str(bjd_reader_t* reader) {
  * This will track reads to ensure that the correct number of bytes are read.
  */
 BJDATA_INLINE void bjd_done_bin(bjd_reader_t* reader) {
-    bjd_done_type(reader, bjd_type_bin);
+    bjd_done_type(reader, bjd_type_huge);
 }
 
 #if BJDATA_EXTENSIONS

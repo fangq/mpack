@@ -865,7 +865,7 @@ BJDATA_INLINE void bjd_finish_str(bjd_writer_t* writer) {
  * @see bjd_write_bytes()
  */
 BJDATA_INLINE void bjd_finish_bin(bjd_writer_t* writer) {
-    bjd_writer_track_pop(writer, bjd_type_bin);
+    bjd_writer_track_pop(writer, bjd_type_huge);
 }
 
 #if BJDATA_EXTENSIONS

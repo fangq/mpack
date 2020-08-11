@@ -31,10 +31,10 @@ BJDATA_STATIC_INLINE const char* bjd_node_data_unchecked(bjd_node_t node) {
     bjd_type_t type = node.data->type;
     BJDATA_UNUSED(type);
     #if BJDATA_EXTENSIONS
-    bjd_assert(type == bjd_type_str || type == bjd_type_bin || type == bjd_type_ext,
+    bjd_assert(type == bjd_type_str || type == bjd_type_huge || type == bjd_type_ext,
             "node of type %i (%s) is not a data type!", type, bjd_type_to_string(type));
     #else
-    bjd_assert(type == bjd_type_str || type == bjd_type_bin,
+    bjd_assert(type == bjd_type_str || type == bjd_type_huge,
             "node of type %i (%s) is not a data type!", type, bjd_type_to_string(type));
     #endif
 
@@ -499,7 +499,7 @@ static bool bjd_tree_parse_node_contents(bjd_tree_t* tree, bjd_node_data_t* node
 
         // bin8
         case 0xc4:
-            node->type = bjd_type_bin;
+            node->type = bjd_type_huge;
             if (!bjd_tree_reserve_bytes(tree, sizeof(uint8_t)))
                 return false;
             node->len = bjd_load_u8(tree->data + tree->size + 1);
@@ -507,7 +507,7 @@ static bool bjd_tree_parse_node_contents(bjd_tree_t* tree, bjd_node_data_t* node
 
         // bin16
         case 0xc5:
-            node->type = bjd_type_bin;
+            node->type = bjd_type_huge;
             if (!bjd_tree_reserve_bytes(tree, sizeof(uint16_t)))
                 return false;
             node->len = bjd_load_u16(tree->data + tree->size + 1);
@@ -515,7 +515,7 @@ static bool bjd_tree_parse_node_contents(bjd_tree_t* tree, bjd_node_data_t* node
 
         // bin32
         case 0xc6:
-            node->type = bjd_type_bin;
+            node->type = bjd_type_huge;
             if (!bjd_tree_reserve_bytes(tree, sizeof(uint32_t)))
                 return false;
             node->len = bjd_load_u32(tree->data + tree->size + 1);
@@ -1258,7 +1258,7 @@ bjd_tag_t bjd_node_tag(bjd_node_t node) {
         case bjd_type_uint:    tag.v.u = node.data->value.u;          break;
 
         case bjd_type_str:     tag.v.l = node.data->len;     break;
-        case bjd_type_bin:     tag.v.l = node.data->len;     break;
+        case bjd_type_huge:     tag.v.l = node.data->len;     break;
 
         #if BJDATA_EXTENSIONS
         case bjd_type_ext:
@@ -1334,7 +1334,7 @@ static void bjd_node_print_element(bjd_node_t node, bjd_print_t* print, size_t d
             {
                 const char* prefix = NULL;
                 size_t prefix_length = 0;
-                if (bjd_node_type(node) == bjd_type_bin
+                if (bjd_node_type(node) == bjd_type_huge
                         #if BJDATA_EXTENSIONS
                         || bjd_node_type(node) == bjd_type_ext
                         #endif
@@ -1492,7 +1492,7 @@ size_t bjd_node_copy_data(bjd_node_t node, char* buffer, size_t bufsize) {
     bjd_assert(bufsize == 0 || buffer != NULL, "buffer is NULL for maximum of %i bytes", (int)bufsize);
 
     bjd_type_t type = node.data->type;
-    if (type != bjd_type_str && type != bjd_type_bin
+    if (type != bjd_type_str && type != bjd_type_huge
             #if BJDATA_EXTENSIONS
             && type != bjd_type_ext
             #endif
@@ -1611,7 +1611,7 @@ char* bjd_node_data_alloc(bjd_node_t node, size_t maxlen) {
 
     // make sure this is a valid data type
     bjd_type_t type = node.data->type;
-    if (type != bjd_type_str && type != bjd_type_bin
+    if (type != bjd_type_str && type != bjd_type_huge
             #if BJDATA_EXTENSIONS
             && type != bjd_type_ext
             #endif
@@ -2200,7 +2200,7 @@ uint32_t bjd_node_data_len(bjd_node_t node) {
         return 0;
 
     bjd_type_t type = node.data->type;
-    if (type == bjd_type_str || type == bjd_type_bin
+    if (type == bjd_type_str || type == bjd_type_huge
             #if BJDATA_EXTENSIONS
             || type == bjd_type_ext
             #endif
@@ -2239,7 +2239,7 @@ const char* bjd_node_data(bjd_node_t node) {
         return NULL;
 
     bjd_type_t type = node.data->type;
-    if (type == bjd_type_str || type == bjd_type_bin
+    if (type == bjd_type_str || type == bjd_type_huge
             #if BJDATA_EXTENSIONS
             || type == bjd_type_ext
             #endif
@@ -2254,7 +2254,7 @@ const char* bjd_node_bin_data(bjd_node_t node) {
     if (bjd_node_error(node) != bjd_ok)
         return NULL;
 
-    if (node.data->type == bjd_type_bin)
+    if (node.data->type == bjd_type_huge)
         return bjd_node_data_unchecked(node);
 
     bjd_node_flag_error(node, bjd_error_type);
@@ -2265,7 +2265,7 @@ size_t bjd_node_bin_size(bjd_node_t node) {
     if (bjd_node_error(node) != bjd_ok)
         return 0;
 
-    if (node.data->type == bjd_type_bin)
+    if (node.data->type == bjd_type_huge)
         return (size_t)node.data->len;
 
     bjd_node_flag_error(node, bjd_error_type);

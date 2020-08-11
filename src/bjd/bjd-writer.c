@@ -472,7 +472,7 @@ void bjd_write_tag(bjd_writer_t* writer, bjd_tag_t value) {
         case bjd_type_uint:   bjd_write_uint  (writer, value.v.u); return;
 
         case bjd_type_str: bjd_start_str(writer, value.v.l); return;
-        case bjd_type_bin: bjd_start_bin(writer, value.v.l); return;
+        case bjd_type_huge: bjd_start_bin(writer, value.v.l); return;
 
         #if BJDATA_EXTENSIONS
         case bjd_type_ext:
@@ -1021,7 +1021,7 @@ void bjd_start_str(bjd_writer_t* writer, uint32_t count) {
 void bjd_start_bin(bjd_writer_t* writer, uint32_t count) {
     bjd_writer_track_element(writer);
     bjd_start_bin_notrack(writer, count);
-    bjd_writer_track_push(writer, bjd_type_bin, count);
+    bjd_writer_track_push(writer, bjd_type_huge, count);
 }
 
 #if BJDATA_EXTENSIONS

@@ -187,13 +187,14 @@ const char* bjd_error_to_string(bjd_error_t error);
 typedef enum bjd_type_t {
     bjd_type_missing = 0, /**< Special type indicating a missing optional value. */
     bjd_type_nil,         /**< A null value. */
+    bjd_type_noop,        /**< A no-op value. */
     bjd_type_bool,        /**< A boolean (true or false.) */
     bjd_type_int,         /**< A 64-bit signed integer. */
     bjd_type_uint,        /**< A 64-bit unsigned integer. */
     bjd_type_float,       /**< A 32-bit IEEE 754 floating point number. */
     bjd_type_double,      /**< A 64-bit IEEE 754 floating point number. */
     bjd_type_str,         /**< A string. */
-    bjd_type_bin,         /**< A chunk of binary data. */
+    bjd_type_huge,        /**< A chunk of binary data. */
     bjd_type_array,       /**< An array of Binary JData objects. */
     bjd_type_map,         /**< An ordered map of key/value pairs of Binary JData objects. */
 
@@ -292,6 +293,14 @@ BJDATA_INLINE bjd_tag_t bjd_tag_make_nil(void) {
     return ret;
 }
 
+
+/** Generates a nil tag. */
+BJDATA_INLINE bjd_tag_t bjd_tag_make_noop(void) {
+    bjd_tag_t ret = BJDATA_TAG_ZERO;
+    ret.type = bjd_type_noop;
+    return ret;
+}
+
 /** Generates a bool tag. */
 BJDATA_INLINE bjd_tag_t bjd_tag_make_bool(bool value) {
     bjd_tag_t ret = BJDATA_TAG_ZERO;
@@ -373,27 +382,12 @@ BJDATA_INLINE bjd_tag_t bjd_tag_make_str(uint32_t length) {
 }
 
 /** Generates a bin tag. */
-BJDATA_INLINE bjd_tag_t bjd_tag_make_bin(uint32_t length) {
+BJDATA_INLINE bjd_tag_t bjd_tag_make_huge(uint32_t length) {
     bjd_tag_t ret = BJDATA_TAG_ZERO;
-    ret.type = bjd_type_bin;
+    ret.type = bjd_type_huge;
     ret.v.l = length;
     return ret;
 }
-
-#if BJDATA_EXTENSIONS
-/**
- * Generates an ext tag.
- *
- * @note This requires @ref BJDATA_EXTENSIONS.
- */
-BJDATA_INLINE bjd_tag_t bjd_tag_make_ext(int8_t exttype, uint32_t length) {
-    bjd_tag_t ret = BJDATA_TAG_ZERO;
-    ret.type = bjd_type_ext;
-    ret.exttype = exttype;
-    ret.v.l = length;
-    return ret;
-}
-#endif
 
 /**
  * @}
@@ -533,13 +527,13 @@ BJDATA_INLINE uint32_t bjd_tag_str_length(bjd_tag_t* tag) {
 /**
  * Gets the length in bytes of a bin-type tag.
  *
- * This asserts that the type in the tag is @ref bjd_type_bin. (No check is
+ * This asserts that the type in the tag is @ref bjd_type_huge. (No check is
  * performed if BJDATA_DEBUG is not set.)
  *
- * @see bjd_type_bin
+ * @see bjd_type_huge
  */
 BJDATA_INLINE uint32_t bjd_tag_bin_length(bjd_tag_t* tag) {
-    bjd_assert(tag->type == bjd_type_bin, "tag is not a bin!");
+    bjd_assert(tag->type == bjd_type_huge, "tag is not a bin!");
     return tag->v.l;
 }
 
@@ -579,19 +573,19 @@ BJDATA_INLINE int8_t bjd_tag_ext_exttype(bjd_tag_t* tag) {
  * Gets the length in bytes of a str-, bin- or ext-type tag.
  *
  * This asserts that the type in the tag is @ref bjd_type_str, @ref
- * bjd_type_bin or @ref bjd_type_ext. (No check is performed if BJDATA_DEBUG
+ * bjd_type_huge or @ref bjd_type_ext. (No check is performed if BJDATA_DEBUG
  * is not set.)
  *
  * @see bjd_type_str
- * @see bjd_type_bin
+ * @see bjd_type_huge
  * @see bjd_type_ext
  */
 BJDATA_INLINE uint32_t bjd_tag_bytes(bjd_tag_t* tag) {
     #if BJDATA_EXTENSIONS
-    bjd_assert(tag->type == bjd_type_str || tag->type == bjd_type_bin
+    bjd_assert(tag->type == bjd_type_str || tag->type == bjd_type_huge
             || tag->type == bjd_type_ext, "tag is not a str, bin or ext!");
     #else
-    bjd_assert(tag->type == bjd_type_str || tag->type == bjd_type_bin,
+    bjd_assert(tag->type == bjd_type_str || tag->type == bjd_type_huge,
             "tag is not a str or bin!");
     #endif
     return tag->v.l;
@@ -730,6 +724,11 @@ BJDATA_INLINE bjd_tag_t bjd_tag_nil(void) {
 }
 
 /** \deprecated Renamed to bjd_tag_make_bool(). */
+BJDATA_INLINE bjd_tag_t bjd_tag_noop(bool value) {
+    return bjd_tag_make_noop(value);
+}
+
+/** \deprecated Renamed to bjd_tag_make_bool(). */
 BJDATA_INLINE bjd_tag_t bjd_tag_bool(bool value) {
     return bjd_tag_make_bool(value);
 }
@@ -805,6 +804,35 @@ BJDATA_INLINE bjd_tag_t bjd_tag_ext(int8_t exttype, int32_t length) {
  * These will remain available in the public API so feel free to
  * use them for other purposes, but they are undocumented.
  */
+
+BJDATA_INLINE uint64_t bjd_load_uint(const char* p) {
+    switch(p[0]){
+	case 'i':
+	    return bjd_load_i8(p+1);
+	    break;
+	case 'U':
+	    return bjd_load_u8(p+1);
+	    break;
+	case 'I':
+	    return bjd_load_i16(p+1);
+	    break;
+	case 'u':
+	    return bjd_load_u16(p+1);
+	    break;
+	case 'l':
+	    return bjd_load_i32(p+1);
+	    break;
+	case 'm':
+	    return bjd_load_u32(p+1);
+	    break;
+	case 'L':
+	    return bjd_load_i64(p+1);
+	    break;
+	case 'M':
+	    return bjd_load_u64(p+1);
+	    break;
+    }
+}
 
 BJDATA_INLINE uint8_t bjd_load_u8(const char* p) {
     return (uint8_t)p[0];
@@ -897,6 +925,7 @@ BJDATA_INLINE void bjd_store_u64(char* p, uint64_t val) {
     #endif
 }
 
+BJDATA_INLINE int64_t bjd_load_int(const char* p) {return (int64_t)bjd_load_uint(p);}
 BJDATA_INLINE int8_t  bjd_load_i8 (const char* p) {return (int8_t) bjd_load_u8 (p);}
 BJDATA_INLINE int16_t bjd_load_i16(const char* p) {return (int16_t)bjd_load_u16(p);}
 BJDATA_INLINE int32_t bjd_load_i32(const char* p) {return (int32_t)bjd_load_u32(p);}
@@ -955,44 +984,17 @@ BJDATA_INLINE void bjd_store_double(char* p, double value) {
 /** @cond */
 
 // Sizes in bytes for the various possible tags
-#define BJDATA_TAG_SIZE_FIXUINT  1
 #define BJDATA_TAG_SIZE_U8       2
 #define BJDATA_TAG_SIZE_U16      3
 #define BJDATA_TAG_SIZE_U32      5
 #define BJDATA_TAG_SIZE_U64      9
-#define BJDATA_TAG_SIZE_FIXINT   1
 #define BJDATA_TAG_SIZE_I8       2
 #define BJDATA_TAG_SIZE_I16      3
 #define BJDATA_TAG_SIZE_I32      5
 #define BJDATA_TAG_SIZE_I64      9
 #define BJDATA_TAG_SIZE_FLOAT    5
 #define BJDATA_TAG_SIZE_DOUBLE   9
-#define BJDATA_TAG_SIZE_FIXARRAY 1
-#define BJDATA_TAG_SIZE_ARRAY16  3
-#define BJDATA_TAG_SIZE_ARRAY32  5
-#define BJDATA_TAG_SIZE_FIXMAP   1
-#define BJDATA_TAG_SIZE_MAP16    3
-#define BJDATA_TAG_SIZE_MAP32    5
-#define BJDATA_TAG_SIZE_FIXSTR   1
-#define BJDATA_TAG_SIZE_STR8     2
-#define BJDATA_TAG_SIZE_STR16    3
-#define BJDATA_TAG_SIZE_STR32    5
-#define BJDATA_TAG_SIZE_BIN8     2
-#define BJDATA_TAG_SIZE_BIN16    3
-#define BJDATA_TAG_SIZE_BIN32    5
-#define BJDATA_TAG_SIZE_FIXEXT1  2
-#define BJDATA_TAG_SIZE_FIXEXT2  2
-#define BJDATA_TAG_SIZE_FIXEXT4  2
-#define BJDATA_TAG_SIZE_FIXEXT8  2
-#define BJDATA_TAG_SIZE_FIXEXT16 2
-#define BJDATA_TAG_SIZE_EXT8     3
-#define BJDATA_TAG_SIZE_EXT16    4
-#define BJDATA_TAG_SIZE_EXT32    6
 
-// size in bytes for complete ext types
-#define BJDATA_EXT_SIZE_TIMESTAMP4 (BJDATA_TAG_SIZE_FIXEXT4 + 4)
-#define BJDATA_EXT_SIZE_TIMESTAMP8 (BJDATA_TAG_SIZE_FIXEXT8 + 8)
-#define BJDATA_EXT_SIZE_TIMESTAMP12 (BJDATA_TAG_SIZE_EXT8 + 12)
 
 /** @endcond */
 

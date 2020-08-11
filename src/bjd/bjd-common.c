@@ -63,7 +63,7 @@ const char* bjd_type_to_string(bjd_type_t type) {
         BJDATA_TYPE_STRING_CASE(bjd_type_int);
         BJDATA_TYPE_STRING_CASE(bjd_type_uint);
         BJDATA_TYPE_STRING_CASE(bjd_type_str);
-        BJDATA_TYPE_STRING_CASE(bjd_type_bin);
+        BJDATA_TYPE_STRING_CASE(bjd_type_huge);
         BJDATA_TYPE_STRING_CASE(bjd_type_array);
         BJDATA_TYPE_STRING_CASE(bjd_type_map);
         #if BJDATA_EXTENSIONS
@@ -119,7 +119,7 @@ int bjd_tag_cmp(bjd_tag_t left, bjd_tag_t right) {
             return (left.v.n < right.v.n) ? -1 : 1;
 
         case bjd_type_str:
-        case bjd_type_bin:
+        case bjd_type_huge:
             if (left.v.l == right.v.l)
                 return 0;
             return (left.v.l < right.v.l) ? -1 : 1;
@@ -203,7 +203,7 @@ static void bjd_tag_debug_complete_bin_ext(bjd_tag_t tag, size_t string_length, 
 static void bjd_tag_debug_pseudo_json_bin(bjd_tag_t tag, char* buffer, size_t buffer_size,
         const char* prefix, size_t prefix_size)
 {
-    bjd_assert(bjd_tag_type(&tag) == bjd_type_bin);
+    bjd_assert(bjd_tag_type(&tag) == bjd_type_huge);
     size_t length = (size_t)bjd_snprintf(buffer, buffer_size, "<binary data of length %u", tag.v.l);
     bjd_tag_debug_complete_bin_ext(tag, length, buffer, buffer_size, prefix, prefix_size);
 }
@@ -229,6 +229,9 @@ static void bjd_tag_debug_pseudo_json_impl(bjd_tag_t tag, char* buffer, size_t b
         case bjd_type_nil:
             bjd_snprintf(buffer, buffer_size, "null");
             return;
+        case bjd_type_noop:
+            bjd_snprintf(buffer, buffer_size, "noop");
+            return;
         case bjd_type_bool:
             bjd_snprintf(buffer, buffer_size, tag.v.b ? "true" : "false");
             return;
@@ -248,7 +251,7 @@ static void bjd_tag_debug_pseudo_json_impl(bjd_tag_t tag, char* buffer, size_t b
         case bjd_type_str:
             bjd_snprintf(buffer, buffer_size, "<string of %u bytes>", tag.v.l);
             return;
-        case bjd_type_bin:
+        case bjd_type_huge:
             bjd_tag_debug_pseudo_json_bin(tag, buffer, buffer_size, prefix, prefix_size);
             return;
         #if BJDATA_EXTENSIONS
@@ -289,6 +292,9 @@ static void bjd_tag_debug_describe_impl(bjd_tag_t tag, char* buffer, size_t buff
         case bjd_type_nil:
             bjd_snprintf(buffer, buffer_size, "nil");
             return;
+        case bjd_type_noop:
+            bjd_snprintf(buffer, buffer_size, "noop");
+            return;
         case bjd_type_bool:
             bjd_snprintf(buffer, buffer_size, tag.v.b ? "true" : "false");
             return;
@@ -307,8 +313,8 @@ static void bjd_tag_debug_describe_impl(bjd_tag_t tag, char* buffer, size_t buff
         case bjd_type_str:
             bjd_snprintf(buffer, buffer_size, "str of %u bytes", tag.v.l);
             return;
-        case bjd_type_bin:
-            bjd_snprintf(buffer, buffer_size, "bin of %u bytes", tag.v.l);
+        case bjd_type_huge:
+            bjd_snprintf(buffer, buffer_size, "huge of %u bytes", tag.v.l);
             return;
         #if BJDATA_EXTENSIONS
         case bjd_type_ext:
@@ -549,89 +555,17 @@ static bool bjd_utf8_check_impl(const uint8_t* str, size_t count, bool allow_nul
     while (count > 0) {
         uint8_t lead = str[0];
 
-        // NUL
-        if (!allow_null && lead == '\0') // we don't allow NUL bytes in BJData C-strings
-            return false;
-
         // ASCII
-        if (lead <= 0x7F) {
-            ++str;
-            --count;
-
-        // 2-byte sequence
-        } else if ((lead & 0xE0) == 0xC0) {
-            if (count < 2) // truncated sequence
-                return false;
-
-            uint8_t cont = str[1];
-            if ((cont & 0xC0) != 0x80) // not a continuation byte
-                return false;
-
-            str += 2;
-            count -= 2;
-
-            uint32_t z = ((uint32_t)(lead & ~0xE0) << 6) |
-                          (uint32_t)(cont & ~0xC0);
-
-            if (z < 0x80) // overlong sequence
-                return false;
-
-        // 3-byte sequence
-        } else if ((lead & 0xF0) == 0xE0) {
-            if (count < 3) // truncated sequence
-                return false;
-
-            uint8_t cont1 = str[1];
-            if ((cont1 & 0xC0) != 0x80) // not a continuation byte
-                return false;
-            uint8_t cont2 = str[2];
-            if ((cont2 & 0xC0) != 0x80) // not a continuation byte
-                return false;
-
-            str += 3;
-            count -= 3;
-
-            uint32_t z = ((uint32_t)(lead  & ~0xF0) << 12) |
-                         ((uint32_t)(cont1 & ~0xC0) <<  6) |
-                          (uint32_t)(cont2 & ~0xC0);
-
-            if (z < 0x800) // overlong sequence
-                return false;
-            if (z >= 0xD800 && z <= 0xDFFF) // surrogate
-                return false;
-
-        // 4-byte sequence
-        } else if ((lead & 0xF8) == 0xF0) {
-            if (count < 4) // truncated sequence
-                return false;
-
-            uint8_t cont1 = str[1];
-            if ((cont1 & 0xC0) != 0x80) // not a continuation byte
-                return false;
-            uint8_t cont2 = str[2];
-            if ((cont2 & 0xC0) != 0x80) // not a continuation byte
-                return false;
-            uint8_t cont3 = str[3];
-            if ((cont3 & 0xC0) != 0x80) // not a continuation byte
-                return false;
-
-            str += 4;
-            count -= 4;
-
-            uint32_t z = ((uint32_t)(lead  & ~0xF8) << 18) |
-                         ((uint32_t)(cont1 & ~0xC0) << 12) |
-                         ((uint32_t)(cont2 & ~0xC0) <<  6) |
-                          (uint32_t)(cont3 & ~0xC0);
-
-            if (z < 0x10000) // overlong sequence
-                return false;
-            if (z > 0x10FFFF) // codepoint limit
-                return false;
-
-        } else {
-            return false; // continuation byte without a lead, or lead for a 5-byte sequence or longer
-        }
-    }
+	switch(lead){
+		case 'Z': case 'F': case 'T': case 'N': 
+		case 'i': case 'U': case 'I': case 'u': 
+		case 'l': case 'm': case 'L': case 'M': 
+		case 'h': case 'd': case 'D': case 'H': 
+		case 'C': case 'S': case '[': case '{': 
+		    return true;
+		default: 
+		    return false;
+	}
     return true;
 }
 
